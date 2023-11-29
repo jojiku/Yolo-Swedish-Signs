@@ -1,2 +1,5 @@
 hypersearch/datasets/*
 hypersearch/yolov8n.pt
+.venv
+.vscode
+hypersearch/detection_results
