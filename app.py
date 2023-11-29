@@ -3,11 +3,13 @@ import os
 import subprocess
 import time  # Import time module for demonstration purposes
 import hydralit_components as hc
-
+from ultralytics import YOLO
+import moviepy.editor as moviepy
+n = 0
 # Function to perform road sign detection using YOLOv5
 def detect_road_signs(video_file_path):
-    command = f"python detect.py --weights C:/Users/Tseh/Documents/YOLO/yolov5/runs/train/exp21/weights/best.pt --img 640 --conf 0.15 --source {video_file_path}"
-    subprocess.run(command, shell=True)
+    model = YOLO('C:/Users/Tseh/Documents/YOLO/yolov8/nikita_best.pt')
+    results = model(source=video_file_path, save=True, save_txt=False, conf=0.5, project="C:/Users/Tseh/Documents/YOLO/detection_results")
 
 st.write("""
 # Road signs detection
@@ -21,20 +23,21 @@ uploaded_file = st.sidebar.file_uploader("Upload your MP4 video", type="mp4")
 if uploaded_file is not None:
     st.write("## Uploaded video:")
     st.video(uploaded_file)
+    
+    detect_video = st.sidebar.button("Detect Road Signs")
+    n=+1
+    if detect_video:
+        with hc.HyLoader(' Detecting road signs...', hc.Loaders.standard_loaders, index=[5]):
+            with open(f"test_{n}.mp4", "wb") as f:
+                f.write(uploaded_file.getvalue())
+            detect_road_signs(f"test_{n}.mp4")
 
-    # Display a loading spinner while performing detection
-    # with st.spinner('## Detecting road signs...'):
-    with hc.HyLoader(' Detecting road signs...', hc.Loaders.standard_loaders, index=[5]):
-        # Save the uploaded file to a temporary location
-        with open("temp.mp4", "wb") as f:
-            f.write(uploaded_file.getvalue())
-        time.sleep(5)
-        # Perform road sign detection
-        detect_road_signs("temp.mp4")
 
-        # Remove the temporary uploaded file
-        os.remove("temp.mp4")
+        st.write("### Road sign detection complete!")
+        result_video_path = f"C:/Users/Tseh/Documents/YOLO/detection_results/predict/test_{n}.avi"
 
-    st.write("### Road sign detection complete!")
-    result_video_path = "C:/Users/Tseh/Documents/YOLO/yolov5/runs/detect/exp13/test.mp4"
-    st.video(result_video_path)
+        clip = moviepy.VideoFileClip(result_video_path)
+
+        clip.write_videofile(f"C:/Users/Tseh/Documents/YOLO/detection_results/predict/test_{n}.mp4")
+        st.video(f"C:/Users/Tseh/Documents/YOLO/detection_results/predict/test_{n}.mp4")
+        download_button = st.button("Download Result")
